@@ -5,29 +5,65 @@ import argparse
 
 import os
 
-TRAIN_DATA = "G:/test_data/songci/output/sc.train"
-TEST_DATA = "G:/test_data/songci/output/sc.test"
-
-CHECKPOINT_PATH = "G:/test_data/songci/output"
 
 
-LEARNING_RATE = 0.4  #0.1 40.3 ; #0.5 38.5
+def parse_args(check=True):
+    parser = argparse.ArgumentParser()
+    # train
+    parser.add_argument('--dataset', type=str, default='/data/HataFeng/songci/sc.train')
+    parser.add_argument('--train_dir', type=str, default='/output/sc.ckpt')
+    parser.add_argument('--learning_rate', type=float, default=0.4)
+    parser.add_argument('--hidden_size', type=int, default=500)
+    parser.add_argument('--num_layers', type=int, default=10)
+    parser.add_argument('--batch_size', type=int, default=20)
+    parser.add_argument('--num_step', type=int, default=35)
 
-HIDDEN_SIZE = 500
-NUM_LAYERS = 10
+    FLAGS, unparsed = parser.parse_known_args()
+    return FLAGS, unparsed
 
-TRAIN_BATCH_SIZE = 20
-TRAIN_NUM_STEP = 35
+FLAGS, unparsed = parse_args()
 
-VOCAB_SIZE = 5000
+if True:
+    TRAIN_DATA = FLAGS.dataset
+    CHECKPOINT_PATH = FLAGS.train_dir
+    LEARNING_RATE = FLAGS.learning_rate
+    HIDDEN_SIZE = FLAGS.hidden_size
+    NUM_LAYERS = FLAGS.num_layers
+    TRAIN_BATCH_SIZE = FLAGS.batch_size
+    TRAIN_NUM_STEP = FLAGS.num_step
 
-EVAL_BATCH_SIZE = 1
-EVAL_NUM_STEP = 1
-NUM_EPOCH = 15
-LSTM_KEEP_PROB = 0.9
-EMBEDDING_KEEP_PROB = 0.9
-MAX_GRAD_NORM = 5
-SHARE_EMB_AND_SOFTMAX = True
+    VOCAB_SIZE = 5000
+
+    EVAL_BATCH_SIZE = 1
+    EVAL_NUM_STEP = 1
+    NUM_EPOCH = 15
+    LSTM_KEEP_PROB = 0.9
+    EMBEDDING_KEEP_PROB = 0.9
+    MAX_GRAD_NORM = 5
+    SHARE_EMB_AND_SOFTMAX = True
+else:
+    TRAIN_DATA = "G:/test_data/songci/output/sc.train"
+    TEST_DATA = "G:/test_data/songci/output/sc.test"
+
+    CHECKPOINT_PATH = "G:/test_data/songci/output"
+
+    LEARNING_RATE = 0.4  #0.1 40.3 ; #0.5 38.5
+
+    HIDDEN_SIZE = 500
+    NUM_LAYERS = 10
+
+    TRAIN_BATCH_SIZE = 20
+    TRAIN_NUM_STEP = 35
+
+    VOCAB_SIZE = 5000
+
+    EVAL_BATCH_SIZE = 1
+    EVAL_NUM_STEP = 1
+    NUM_EPOCH = 15
+    LSTM_KEEP_PROB = 0.9
+    EMBEDDING_KEEP_PROB = 0.9
+    MAX_GRAD_NORM = 5
+    SHARE_EMB_AND_SOFTMAX = True
 
 
 class PTBModel(object):
@@ -168,8 +204,6 @@ def main():
             print("Epoch: %d Train Perplexity: %.3f" % (i + 1, train_pplx))
 
 if __name__ == "__main__":
-
-    FLAGS, unparsed = parse_args()
     print('current working dir [{0}]'.format(os.getcwd()))
     w_d = os.path.dirname(os.path.abspath(__file__))
     print('change wording dir to [{0}]'.format(w_d))
