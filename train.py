@@ -50,7 +50,7 @@ else:
     LEARNING_RATE = 0.4  #0.1 40.3 ; #0.5 38.5
 
     HIDDEN_SIZE = 500
-    NUM_LAYERS = 5
+    NUM_LAYERS = 10
 
     TRAIN_BATCH_SIZE = 20
     TRAIN_NUM_STEP = 35
@@ -126,8 +126,7 @@ class PTBModel(object):
 
         grads, _ = tf.clip_by_global_norm(
             tf.gradients(self.cost, trainable_variables), MAX_GRAD_NORM)
-        #optimizer = tf.train.GradientDescentOptimizer(learning_rate=LEARNING_RATE)
-        optimizer = tf.train.AdamOptimizer(learning_rate=LEARNING_RATE)
+        optimizer = tf.train.GradientDescentOptimizer(learning_rate=LEARNING_RATE)
         self.train_op = optimizer.apply_gradients(zip(grads, trainable_variables), global_step=self.global_step)
 
 
