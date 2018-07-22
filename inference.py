@@ -25,6 +25,8 @@ def parse_args(check=True):
     parser.add_argument('--environment', type=str, default='local') #tinymain
 
     FLAGS, unparsed = parser.parse_known_args()
+
+    print("FLAGS:", FLAGS)
     return FLAGS, unparsed
 
 FLAGS, unparsed = parse_args()
@@ -32,7 +34,7 @@ FLAGS, unparsed = parse_args()
 if FLAGS.environment == "tinymain":
     TITLE = FLAGS.title
     VOCAB = FLAGS.vocab
-    CHECKPOINT_PATH = FLAGS.train_dirvocab
+    CHECKPOINT_PATH = FLAGS.train_dir
 
     HIDDEN_SIZE = FLAGS.hidden_size
     NUM_LAYERS = FLAGS.num_layers
