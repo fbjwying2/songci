@@ -26,7 +26,7 @@ def parse_args(check=True):
 
     FLAGS, unparsed = parser.parse_known_args()
 
-    print("FLAGS:", FLAGS)
+    #print("FLAGS:", FLAGS)
     return FLAGS, unparsed
 
 FLAGS, unparsed = parse_args()
