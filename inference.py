@@ -1,6 +1,9 @@
 import numpy as np
 import tensorflow as tf
 
+import codecs
+
+
 import argparse
 
 import os
@@ -10,27 +13,27 @@ import os
 def parse_args(check=True):
     parser = argparse.ArgumentParser()
     # train
-    parser.add_argument('--dataset', type=str, default='/data/HataFeng/songci/sc.train')
+
+    parser.add_argument('--title', type=str, default='海枯石烂')
+    parser.add_argument('--vocab', type=str, default='/data/HataFeng/songci/sc.vocab')
     parser.add_argument('--train_dir', type=str, default='/output/sc.ckpt')
-    parser.add_argument('--learning_rate', type=float, default=0.4)
     parser.add_argument('--hidden_size', type=int, default=500)
     parser.add_argument('--num_layers', type=int, default=10)
     parser.add_argument('--batch_size', type=int, default=20)
     parser.add_argument('--num_step', type=int, default=35)
-    parser.add_argument('--Optimizer', type=str, default='SGD') # adam  SGD
+
     parser.add_argument('--environment', type=str, default='local') #tinymain
 
     FLAGS, unparsed = parser.parse_known_args()
-
-    print("FLAGS:", FLAGS)
     return FLAGS, unparsed
 
 FLAGS, unparsed = parse_args()
 
 if FLAGS.environment == "tinymain":
-    TRAIN_DATA = FLAGS.dataset
-    CHECKPOINT_PATH = FLAGS.train_dir
-    LEARNING_RATE = FLAGS.learning_rate
+    TITLE = FLAGS.title
+    VOCAB = FLAGS.vocab
+    CHECKPOINT_PATH = FLAGS.train_dirvocab
+
     HIDDEN_SIZE = FLAGS.hidden_size
     NUM_LAYERS = FLAGS.num_layers
     TRAIN_BATCH_SIZE = FLAGS.batch_size
@@ -40,25 +43,18 @@ if FLAGS.environment == "tinymain":
 
     EVAL_BATCH_SIZE = 1
     EVAL_NUM_STEP = 1
-    NUM_EPOCH = 15
+    NUM_EPOCH = 1
     LSTM_KEEP_PROB = 0.9
     EMBEDDING_KEEP_PROB = 0.9
     MAX_GRAD_NORM = 5
     SHARE_EMB_AND_SOFTMAX = True
-else: # local
-    TRAIN_DATA = "G:/test_data/songci/output/sc.train"
-    TEST_DATA = "G:/test_data/songci/output/sc.test"
-
+else:
+    TITLE = "海枯石烂"
     CHECKPOINT_PATH = "G:/test_data/songci/output"
+    VOCAB = "G:/test_data/songci/output/sc.vocab"
 
-    #LEARNING_RATE = 0.4  #0.1 40.3 ; #0.5 38.5
-
-    #HIDDEN_SIZE = 500
-    #NUM_LAYERS = 10
-
-    LEARNING_RATE = FLAGS.learning_rate
-    HIDDEN_SIZE = FLAGS.hidden_size
-    NUM_LAYERS = FLAGS.num_layers
+    HIDDEN_SIZE = 500
+    NUM_LAYERS = 10
 
     TRAIN_BATCH_SIZE = 20
     TRAIN_NUM_STEP = 35
@@ -67,20 +63,27 @@ else: # local
 
     EVAL_BATCH_SIZE = 1
     EVAL_NUM_STEP = 1
-    NUM_EPOCH = 15
+    NUM_EPOCH = 1
     LSTM_KEEP_PROB = 0.9
     EMBEDDING_KEEP_PROB = 0.9
     MAX_GRAD_NORM = 5
     SHARE_EMB_AND_SOFTMAX = True
 
 
+id_to_word = []
+word_to_id = {}
+line_no = 1
+with codecs.open(VOCAB, "rb", "utf-8") as f:
+    for line in f:
+        id_to_word.append(line.strip())
+        word_to_id[line.strip()] = line_no
+        line_no += 1
+
+
 class PTBModel(object):
     def __init__(self, is_training, batch_size, num_steps):
         self.batch_size = batch_size
         self.num_steps = num_steps
-
-        self.global_step = tf.Variable(
-            0, trainable=False, name='self.global_step', dtype=tf.int64)
 
         self.input_data = tf.placeholder(tf.int32, [batch_size, num_steps])
         self.targets = tf.placeholder(tf.int32, [batch_size, num_steps])
@@ -122,51 +125,10 @@ class PTBModel(object):
 
         self.predictions = tf.nn.softmax(logits, name='predictions')
 
-        loss = tf.nn.sparse_softmax_cross_entropy_with_logits(
-            labels=tf.reshape(self.targets, [-1]),
-            logits=logits)
+        loss = tf.nn.sparse_softmax_cross_entropy_with_logits(labels=tf.reshape(self.targets, [-1]), logits=logits)
         self.cost = tf.reduce_sum(loss) / batch_size
         self.final_state = state
 
-        if not is_training: return
-
-        trainable_variables = tf.trainable_variables()
-
-        grads, _ = tf.clip_by_global_norm(
-            tf.gradients(self.cost, trainable_variables), MAX_GRAD_NORM)
-
-        print("FLAGS.Optimizer:", FLAGS.Optimizer)
-        if FLAGS.Optimizer == "adam":
-            print("use adma Optimizer  learning_rate:", LEARNING_RATE)
-            optimizer = tf.train.AdamOptimizer(learning_rate=LEARNING_RATE)
-        else:
-            optimizer = tf.train.GradientDescentOptimizer(learning_rate=LEARNING_RATE)
-
-        self.train_op = optimizer.apply_gradients(zip(grads, trainable_variables), global_step=self.global_step)
-
-
-def run_epoch(session, model, batches, train_op, output_log, saver):
-    total_costs = 0.0
-    iters = 0
-    state = session.run(model.initial_state)
-
-    for x, y in batches:
-        global_step, cost, state, _ = session.run(
-            [model.global_step, model.cost, model.final_state, train_op],
-            {model.input_data: x, model.targets: y,
-             model.initial_state: state})
-
-        total_costs += cost
-        iters += model.num_steps
-
-        if output_log and global_step % 100 == 0:
-            print("After %d steps, perpelxity is %.3f" % (global_step, np.exp(total_costs / iters)))
-
-        if global_step % 200 == 0:
-            print("save ckpt  global_step:", global_step)
-            saver.save(session, os.path.join(CHECKPOINT_PATH, "sc.ckpt"), global_step=global_step)
-
-    return global_step, np.exp(total_costs / iters)
 
 def read_data(file_path):
     with open(file_path, "r") as fin:
@@ -193,30 +155,71 @@ def make_batches(id_list, batch_size, num_step):
     return list(zip(data_batches, label_batches))
 
 
+def run_epoch_test(session, model, state, batches, title, no_op, output_log, step):
+    iters = 0
+    state_ = session.run(model.initial_state)
+
+    for x, y in batches:
+        predictions, state_, _ = session.run(
+            [model.predictions, model.final_state, no_op],
+            {model.input_data: x, model.targets: y,
+             model.initial_state: state_})
+
+        iters += model.num_steps
+        step += 1
+
+    sentence = []
+    input_words = predictions[0].argsort()[-3:]
+
+    for input_word in input_words:
+        print("last input_word:", id_to_word[input_word])
+        _sentence = ""
+
+        for i in range(512):
+            predictions, state_, _ = session.run(
+                [model.predictions, model.final_state, no_op],
+                {model.input_data: [[input_word]], model.targets: y,
+                 model.initial_state: state_})
+
+            input_word = predictions[0].argsort()[-1]
+            word = id_to_word[input_word]
+
+            _sentence = _sentence + word
+
+        print("%s%s" % (title, _sentence))
+        sentence.append(_sentence)
+
+    return sentence
+
+
 def main():
-    #    train_batches = make_batches(read_data(TRAIN_DATA), TRAIN_BATCH_SIZE, TRAIN_NUM_STEP)
+    test_input = []
+    title = TITLE
+    print("title: ", title)
+    for word in title:
+        test_input.append(word_to_id[word])
+
+    print(test_input)
+
     initializer = tf.random_uniform_initializer(-0.05, 0.05)
 
     with tf.variable_scope("language_model", reuse=None, initializer=initializer):
         train_model = PTBModel(True, TRAIN_BATCH_SIZE, TRAIN_NUM_STEP)
 
+    with tf.variable_scope("language_model", reuse=True, initializer=initializer):
+        eval_model = PTBModel(False, EVAL_BATCH_SIZE, EVAL_NUM_STEP)
+
+    test_batches = make_batches(test_input, EVAL_BATCH_SIZE, EVAL_NUM_STEP)
+    checkpoint_path = tf.train.latest_checkpoint(CHECKPOINT_PATH)
     with tf.Session() as session:
-        tf.global_variables_initializer().run()
-        train_batches = make_batches(read_data(TRAIN_DATA), TRAIN_BATCH_SIZE, TRAIN_NUM_STEP)
+        saver = tf.train.Saver()
+        saver.restore(session, checkpoint_path)
 
-        saver = tf.train.Saver(max_to_keep=10)
+        sentence = run_epoch_test(session, eval_model, train_model.final_state, test_batches, title, tf.no_op(), False,
+                                  0)
 
-        try:
-            checkpoint_path = tf.train.latest_checkpoint(CHECKPOINT_PATH)
-            saver.restore(session, checkpoint_path)
+    # print(sentence)
 
-        except Exception:
-            print("no check point found....")
-
-        for i in range(NUM_EPOCH):
-            step, train_pplx = run_epoch(session, train_model, train_batches,
-                                         train_model.train_op, True, saver)
-            print("Epoch: %d Train Perplexity: %.3f" % (i + 1, train_pplx))
 
 if __name__ == "__main__":
     if FLAGS.environment == "tinymine":
