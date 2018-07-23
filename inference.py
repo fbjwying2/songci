@@ -8,7 +8,7 @@ import argparse
 
 import os
 
-
+import sys
 
 def parse_args(check=True):
     parser = argparse.ArgumentParser()
@@ -32,6 +32,11 @@ def parse_args(check=True):
 FLAGS, unparsed = parse_args()
 
 if FLAGS.environment == "tinymain":
+    reload(sys)
+    sys.setdefaultencoding("utf-8")
+
+    print("FLAGS:", FLAGS)
+
     TITLE = FLAGS.title
     VOCAB = FLAGS.vocab
     CHECKPOINT_PATH = FLAGS.train_dir
@@ -51,9 +56,9 @@ if FLAGS.environment == "tinymain":
     MAX_GRAD_NORM = 5
     SHARE_EMB_AND_SOFTMAX = True
 else:
-    TITLE = "海枯石烂"
-    CHECKPOINT_PATH = "G:/test_data/songci/output"
-    VOCAB = "G:/test_data/songci/output/sc.vocab"
+    TITLE = FLAGS.title  #"海枯石烂"
+    CHECKPOINT_PATH = FLAGS.train_dir  #"G:/test_data/songci/output"
+    VOCAB =  "G:/test_data/songci/output/sc.vocab"
 
     HIDDEN_SIZE = 500
     NUM_LAYERS = 10
