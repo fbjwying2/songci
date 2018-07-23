@@ -9,6 +9,8 @@ import argparse
 import os
 
 import sys
+import importlib
+
 
 def parse_args(check=True):
     parser = argparse.ArgumentParser()
@@ -32,7 +34,7 @@ def parse_args(check=True):
 FLAGS, unparsed = parse_args()
 
 if FLAGS.environment == "tinymain":
-    reload(sys)
+    importlib.reload(sys)
     sys.setdefaultencoding("utf-8")
 
     print("FLAGS:", FLAGS)
