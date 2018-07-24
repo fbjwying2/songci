@@ -85,6 +85,9 @@ class PTBModel(object):
         self.input_data = tf.placeholder(tf.int32, [batch_size, num_steps])
         self.targets = tf.placeholder(tf.int32, [batch_size, num_steps])
 
+        # 定义使用LSTM结构为循环体结构且使用dropout的深层循环神经网络
+        # NUM_LAYERS 网络深度层数
+        # HIDDEN_SIZE 神经元数量
         dropout_keep_prob = LSTM_KEEP_PROB if is_training else 1.0
         lstm_cells = [
             tf.nn.rnn_cell.DropoutWrapper(
@@ -97,11 +100,15 @@ class PTBModel(object):
 
         embedding = tf.get_variable("embedding", [VOCAB_SIZE, HIDDEN_SIZE])
 
+        # 将输入单词转化为词向量
+        #skip-gram模型
         inputs = tf.nn.embedding_lookup(embedding, self.input_data)
 
+        # 对输入数据进行dropout
         if is_training:
             inputs = tf.nn.dropout(inputs, EMBEDDING_KEEP_PROB)
 
+        # 收集LSTM不同时刻的输出
         outputs = []
         state = self.initial_state
         with tf.variable_scope("RNN"):
@@ -120,8 +127,10 @@ class PTBModel(object):
         bias = tf.get_variable("bias", [VOCAB_SIZE])
         logits = tf.matmul(output, weight) + bias
 
+        # 分类输出
         self.predictions = tf.nn.softmax(logits, name='predictions')
 
+        # 真实分布与预测分布的交叉熵
         loss = tf.nn.sparse_softmax_cross_entropy_with_logits(
             labels=tf.reshape(self.targets, [-1]),
             logits=logits)
@@ -135,6 +144,7 @@ class PTBModel(object):
         grads, _ = tf.clip_by_global_norm(
             tf.gradients(self.cost, trainable_variables), MAX_GRAD_NORM)
 
+        # 梯度优化
         print("FLAGS.Optimizer:", FLAGS.Optimizer)
         if FLAGS.Optimizer == "adam":
             print("use adma Optimizer  learning_rate:", LEARNING_RATE)
@@ -142,6 +152,7 @@ class PTBModel(object):
         else:
             optimizer = tf.train.GradientDescentOptimizer(learning_rate=LEARNING_RATE)
 
+        # 训练步骤
         self.train_op = optimizer.apply_gradients(zip(grads, trainable_variables), global_step=self.global_step)
 
 
