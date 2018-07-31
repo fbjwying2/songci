@@ -31,45 +31,26 @@ def parse_args(check=True):
 
 FLAGS, unparsed = parse_args()
 
-if FLAGS.environment == "tinymain":
-    TITLE = FLAGS.title
-    VOCAB = FLAGS.vocab
-    CHECKPOINT_PATH = FLAGS.train_dir
 
-    HIDDEN_SIZE = FLAGS.hidden_size
-    NUM_LAYERS = FLAGS.num_layers
-    TRAIN_BATCH_SIZE = FLAGS.batch_size
-    TRAIN_NUM_STEP = FLAGS.num_step
+TITLE = FLAGS.title
+VOCAB = FLAGS.vocab
+CHECKPOINT_PATH = FLAGS.train_dir
 
-    VOCAB_SIZE = 5000
+HIDDEN_SIZE = FLAGS.hidden_size
+NUM_LAYERS = FLAGS.num_layers
+TRAIN_BATCH_SIZE = FLAGS.batch_size
+TRAIN_NUM_STEP = FLAGS.num_step
 
-    EVAL_BATCH_SIZE = 1
-    EVAL_NUM_STEP = 1
-    NUM_EPOCH = 1
-    LSTM_KEEP_PROB = 0.9
-    EMBEDDING_KEEP_PROB = 0.9
-    MAX_GRAD_NORM = 5
-    SHARE_EMB_AND_SOFTMAX = True
-else:
-    TITLE = FLAGS.title  #"海枯石烂"
-    CHECKPOINT_PATH = FLAGS.train_dir  #"G:/test_data/songci/output"
-    VOCAB = FLAGS.vocab   # "G:/test_data/songci/output/sc.vocab"
+VOCAB_SIZE = 5000
 
-    HIDDEN_SIZE = FLAGS.hidden_size
-    NUM_LAYERS = FLAGS.num_layers
+EVAL_BATCH_SIZE = 1
+EVAL_NUM_STEP = 1
+NUM_EPOCH = 1
+LSTM_KEEP_PROB = 0.9
+EMBEDDING_KEEP_PROB = 0.9
+MAX_GRAD_NORM = 5
+SHARE_EMB_AND_SOFTMAX = True
 
-    TRAIN_BATCH_SIZE = 20
-    TRAIN_NUM_STEP = 35
-
-    VOCAB_SIZE = 5000
-
-    EVAL_BATCH_SIZE = 1
-    EVAL_NUM_STEP = 1
-    NUM_EPOCH = 1
-    LSTM_KEEP_PROB = 0.9
-    EMBEDDING_KEEP_PROB = 0.9
-    MAX_GRAD_NORM = 5
-    SHARE_EMB_AND_SOFTMAX = True
 
 
 id_to_word = []

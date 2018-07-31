@@ -27,52 +27,24 @@ def parse_args(check=True):
 
 FLAGS, unparsed = parse_args()
 
-if FLAGS.environment == "tinymain":
-    TRAIN_DATA = FLAGS.dataset
-    CHECKPOINT_PATH = FLAGS.train_dir
-    LEARNING_RATE = FLAGS.learning_rate
-    HIDDEN_SIZE = FLAGS.hidden_size
-    NUM_LAYERS = FLAGS.num_layers
-    TRAIN_BATCH_SIZE = FLAGS.batch_size
-    TRAIN_NUM_STEP = FLAGS.num_step
 
-    VOCAB_SIZE = 5000
+TRAIN_DATA = FLAGS.dataset
+CHECKPOINT_PATH = FLAGS.train_dir
+LEARNING_RATE = FLAGS.learning_rate
+HIDDEN_SIZE = FLAGS.hidden_size
+NUM_LAYERS = FLAGS.num_layers
+TRAIN_BATCH_SIZE = FLAGS.batch_size
+TRAIN_NUM_STEP = FLAGS.num_step
 
-    EVAL_BATCH_SIZE = 1
-    EVAL_NUM_STEP = 1
-    NUM_EPOCH = 15
-    LSTM_KEEP_PROB = 0.9
-    EMBEDDING_KEEP_PROB = 0.9
-    MAX_GRAD_NORM = 5
-    SHARE_EMB_AND_SOFTMAX = True
-else: # local
-    TRAIN_DATA = "G:/test_data/songci/output/sc.train"
-    TEST_DATA = "G:/test_data/songci/output/sc.test"
+VOCAB_SIZE = 5000
 
-    CHECKPOINT_PATH = "G:/test_data/songci/output"
-
-    #LEARNING_RATE = 0.4  #0.1 40.3 ; #0.5 38.5
-
-    #HIDDEN_SIZE = 500
-    #NUM_LAYERS = 10
-
-    LEARNING_RATE = FLAGS.learning_rate
-    HIDDEN_SIZE = FLAGS.hidden_size
-    NUM_LAYERS = FLAGS.num_layers
-
-    TRAIN_BATCH_SIZE = 20
-    TRAIN_NUM_STEP = 35
-
-    VOCAB_SIZE = 5000
-
-    EVAL_BATCH_SIZE = 1
-    EVAL_NUM_STEP = 1
-    NUM_EPOCH = 15
-    LSTM_KEEP_PROB = 0.9
-    EMBEDDING_KEEP_PROB = 0.9
-    MAX_GRAD_NORM = 5
-    SHARE_EMB_AND_SOFTMAX = True
-
+EVAL_BATCH_SIZE = 1
+EVAL_NUM_STEP = 1
+NUM_EPOCH = 15
+LSTM_KEEP_PROB = 0.9
+EMBEDDING_KEEP_PROB = 0.9
+MAX_GRAD_NORM = 5
+SHARE_EMB_AND_SOFTMAX = True
 
 class PTBModel(object):
     def __init__(self, is_training, batch_size, num_steps):
@@ -149,8 +121,11 @@ class PTBModel(object):
         if FLAGS.Optimizer == "adam":
             print("use adma Optimizer  learning_rate:", LEARNING_RATE)
             optimizer = tf.train.AdamOptimizer(learning_rate=LEARNING_RATE)
-        else:
+        elif FLAGS.Optimizer == "SGD":
             optimizer = tf.train.GradientDescentOptimizer(learning_rate=LEARNING_RATE)
+        elif FLAGS.Optimizer == "momentum":
+            momentum = 0.25
+            optimizer = tf.train.MomentumOptimizer(momentum=momentum, learning_rate=LEARNING_RATE)
 
         # 训练步骤
         self.train_op = optimizer.apply_gradients(zip(grads, trainable_variables), global_step=self.global_step)
