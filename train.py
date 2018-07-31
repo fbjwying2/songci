@@ -40,7 +40,7 @@ VOCAB_SIZE = 5000
 
 EVAL_BATCH_SIZE = 1
 EVAL_NUM_STEP = 1
-NUM_EPOCH = 15
+NUM_EPOCH = 20
 LSTM_KEEP_PROB = 0.9
 EMBEDDING_KEEP_PROB = 0.9
 MAX_GRAD_NORM = 5
@@ -190,7 +190,7 @@ def main():
         tf.global_variables_initializer().run()
         train_batches = make_batches(read_data(TRAIN_DATA), TRAIN_BATCH_SIZE, TRAIN_NUM_STEP)
 
-        saver = tf.train.Saver(max_to_keep=10)
+        saver = tf.train.Saver(max_to_keep=5)
 
         try:
             checkpoint_path = tf.train.latest_checkpoint(CHECKPOINT_PATH)
